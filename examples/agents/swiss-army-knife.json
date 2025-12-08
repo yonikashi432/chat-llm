@@ -1,0 +1,79 @@
+{
+  "name": "Swiss Army Knife Agent",
+  "description": "Multi-purpose agent with various capabilities for any task",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "name": "File Operations",
+      "description": "Read, write, and list files",
+      "steps": [
+        {
+          "tool": "listDirectory",
+          "params": {
+            "path": "."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Text Analysis",
+      "description": "Analyze text content",
+      "steps": [
+        {
+          "tool": "readFile",
+          "params": {
+            "path": "{{filePath}}"
+          }
+        },
+        {
+          "tool": "wordCount",
+          "params": {
+            "text": "{{readFile}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Data Processing",
+      "description": "Parse and process structured data",
+      "steps": [
+        {
+          "tool": "parseJSON",
+          "params": {
+            "data": "{{jsonData}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Math Calculations",
+      "description": "Perform mathematical calculations",
+      "steps": [
+        {
+          "tool": "calculate",
+          "params": {
+            "expression": "{{mathExpression}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "System Commands",
+      "description": "Execute system commands",
+      "steps": [
+        {
+          "tool": "executeCommand",
+          "params": {
+            "command": "{{shellCommand}}",
+            "timeout": 10000
+          }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "maxRetries": 3,
+    "timeout": 30000,
+    "verbose": true
+  }
+}

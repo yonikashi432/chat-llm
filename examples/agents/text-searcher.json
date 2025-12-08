@@ -1,0 +1,32 @@
+{
+  "name": "Text Search Agent",
+  "description": "Search for patterns in text files using regex",
+  "version": "1.0.0",
+  "workflow": [
+    {
+      "name": "Search in File",
+      "description": "Find all lines matching a pattern",
+      "steps": [
+        {
+          "tool": "readFile",
+          "params": {
+            "path": "{{searchPath}}"
+          }
+        },
+        {
+          "tool": "grep",
+          "params": {
+            "text": "{{readFile}}",
+            "pattern": "{{searchPattern}}",
+            "caseInsensitive": true
+          }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "maxRetries": 1,
+    "timeout": 20000,
+    "verbose": true
+  }
+}
