@@ -1,0 +1,76 @@
+{
+  "name": "Advanced Data Pipeline v2",
+  "description": "Demonstrates v2.0 features: HTTP requests, validation, advanced transformations",
+  "version": "2.0.0",
+  "workflow": [
+    {
+      "name": "Fetch Data from API",
+      "description": "Retrieve data from external API",
+      "steps": [
+        {
+          "tool": "fetchJSON",
+          "params": {
+            "url": "https://jsonplaceholder.typicode.com/users"
+          }
+        },
+        {
+          "tool": "transformData",
+          "params": {
+            "data": "{{fetchJSON}}",
+            "operation": "select",
+            "mapping": {
+              "fields": ["id", "name", "email", "company"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validate Data",
+      "description": "Ensure data meets schema requirements",
+      "steps": [
+        {
+          "tool": "validateSchema",
+          "params": {
+            "data": "{{fetchJSON}}",
+            "schema": {
+              "type": "array"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Process and Save",
+      "description": "Transform and save processed data",
+      "steps": [
+        {
+          "tool": "deduplicateData",
+          "params": {
+            "data": "{{transformData}}",
+            "key": "id"
+          }
+        },
+        {
+          "tool": "writeFile",
+          "params": {
+            "path": "processed_users.json",
+            "content": "{{deduplicateData}}"
+          }
+        },
+        {
+          "tool": "getStats",
+          "params": {
+            "path": "processed_users.json"
+          }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "maxRetries": 3,
+    "timeout": 60000,
+    "verbose": true,
+    "logLevel": "DEBUG"
+  }
+}
