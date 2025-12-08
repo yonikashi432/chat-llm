@@ -63,7 +63,7 @@ Your role is to:
   agents.updateAgentStats('coder', 2000);
   agents.updateAgentStats('researcher', 3000);
 
-  const stats = agents.getAgentStats();
+  const stats = agents.getStats();
   stats.forEach(stat => {
     console.log(`\n${stat.name} (${stat.id})`);
     console.log(`  Usage count: ${stat.usageCount}`);
