@@ -1,12 +1,26 @@
 /**
  * Configuration management for Chat LLM v2
  * Handles application settings, profiles, and user preferences
+ * 
+ * @module ConfigManager
+ * @author yonikashi432
+ * @version 2.0.0
  */
 
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * ConfigManager - Centralized configuration management
+ * Provides persistent storage for application settings with support for
+ * nested keys, profiles, and runtime updates.
+ */
 class ConfigManager {
+    /**
+     * Initialize the configuration manager
+     * 
+     * @param {string} configDir - Directory to store configuration files
+     */
     constructor(configDir = './config') {
         this.configDir = configDir;
         this.configFile = path.join(configDir, 'settings.json');
@@ -37,6 +51,12 @@ class ConfigManager {
         this.loadConfig();
     }
 
+    /**
+     * Ensure configuration directories exist
+     * Creates the config directory and profiles subdirectory if they don't exist
+     * 
+     * @private
+     */
     ensureConfigDir() {
         [this.configDir, this.profilesDir].forEach(dir => {
             if (!fs.existsSync(dir)) {
@@ -45,6 +65,12 @@ class ConfigManager {
         });
     }
 
+    /**
+     * Load configuration from disk
+     * If no configuration file exists, creates one with default values
+     * 
+     * @private
+     */
     loadConfig() {
         try {
             if (fs.existsSync(this.configFile)) {
@@ -60,6 +86,12 @@ class ConfigManager {
         }
     }
 
+    /**
+     * Save configuration to disk
+     * Writes the current configuration to the settings file
+     * 
+     * @private
+     */
     saveConfig() {
         try {
             fs.writeFileSync(this.configFile, JSON.stringify(this.config, null, 2), 'utf-8');
@@ -69,7 +101,15 @@ class ConfigManager {
     }
 
     /**
-     * Get configuration value
+     * Get configuration value using dotted notation
+     * 
+     * @param {string} key - Configuration key (e.g., 'caching.enabled', 'models.temperature')
+     * @param {*} defaultValue - Default value if key doesn't exist
+     * @returns {*} Configuration value or default
+     * 
+     * @example
+     * const cachingEnabled = config.get('caching.enabled', true);
+     * const temperature = config.get('models.temperature', 0.7);
      */
     get(key, defaultValue = null) {
         const keys = key.split('.');
