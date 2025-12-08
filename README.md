@@ -50,7 +50,10 @@ The agent system provides:
 - **System Commands**: Execute shell commands (with caution)
 - **Workflow Automation**: Chain multiple tasks together
 
-See the [complete Agent Guide](AGENT_GUIDE.md) for detailed documentation and examples.
+📚 **Documentation**:
+- [Quick Start Guide](QUICKSTART.md) - Get started in 5 minutes
+- [Complete Agent Guide](AGENT_GUIDE.md) - Detailed documentation
+- Run the demo: `node demo-agent.js`
 
 ## Multi-language Support
 

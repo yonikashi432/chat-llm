@@ -182,14 +182,45 @@ const executeAgentWithLLM = async (agentConfig, userQuery, chatFunction, config 
 const resolveParams = (params, context) => {
     const resolved = {};
     
+    // Helper to get nested property using dot notation
+    const getNestedValue = (obj, path) => {
+        const parts = path.split('.');
+        let value = obj;
+        for (const part of parts) {
+            if (value && typeof value === 'object' && part in value) {
+                value = value[part];
+            } else {
+                return undefined;
+            }
+        }
+        return value;
+    };
+    
     for (const key in params) {
         let value = params[key];
         
-        // Replace {{variable}} placeholders
+        // Replace {{variable}} or {{variable.property}} placeholders
         if (typeof value === 'string') {
-            value = value.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-                return context[varName] !== undefined ? context[varName] : match;
+            value = value.replace(/\{\{([\w.]+)\}\}/g, (match, varName) => {
+                const resolved = getNestedValue(context, varName);
+                if (resolved !== undefined) {
+                    // If it's an object or array, return as JSON string
+                    if (typeof resolved === 'object') {
+                        return JSON.stringify(resolved);
+                    }
+                    return resolved;
+                }
+                return match;
             });
+            
+            // Try to parse back to object/array if it looks like JSON
+            if (value.startsWith('[') || value.startsWith('{')) {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    // Keep as string if parse fails
+                }
+            }
         }
         
         resolved[key] = value;

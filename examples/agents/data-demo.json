@@ -1,0 +1,46 @@
+{
+  "name": "Data Analysis Demo Agent",
+  "description": "Demonstrates CSV data analysis capabilities",
+  "version": "1.0.0",
+  "workflow": [
+    {
+      "name": "Load and Parse CSV",
+      "description": "Read the sample CSV file and parse it",
+      "steps": [
+        {
+          "tool": "readFile",
+          "params": {
+            "path": "examples/sample-data.csv"
+          }
+        },
+        {
+          "tool": "parseCSV",
+          "params": {
+            "data": "{{readFile}}",
+            "delimiter": ","
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calculate Average Salary by City",
+      "description": "Aggregate salary data by city",
+      "steps": [
+        {
+          "tool": "aggregateData",
+          "params": {
+            "data": "{{parseCSV.rows}}",
+            "groupBy": "city",
+            "aggregateKey": "salary",
+            "operation": "avg"
+          }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "maxRetries": 2,
+    "timeout": 30000,
+    "verbose": true
+  }
+}
