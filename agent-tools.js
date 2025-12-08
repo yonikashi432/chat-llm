@@ -209,15 +209,33 @@ const textTools = {
  */
 const systemTools = {
     /**
-     * Execute shell command (use with caution)
+     * Execute shell command (⚠️ SECURITY WARNING: Use with extreme caution!)
+     * 
+     * This tool allows arbitrary command execution and should only be used in trusted
+     * environments with validated input. Consider the security implications:
+     * - Can execute any system command
+     * - May access sensitive files
+     * - Could modify system state
+     * 
+     * Only use when absolutely necessary and with sanitized inputs.
      */
     executeCommand: async (params) => {
         const { command, timeout = 30000 } = params;
+        
+        // Security check: Warn if command contains potentially dangerous patterns
+        const dangerousPatterns = ['rm -rf', 'dd if=', 'mkfs', ':(){', '>(){ :', 'fork'];
+        const isDangerous = dangerousPatterns.some(pattern => command.includes(pattern));
+        
+        if (isDangerous) {
+            throw new Error('Command contains potentially dangerous operations and was blocked for safety');
+        }
+        
         try {
             const output = execSync(command, { 
                 timeout,
                 encoding: 'utf-8',
-                maxBuffer: 1024 * 1024 * 10 // 10MB
+                maxBuffer: 1024 * 1024 * 10, // 10MB
+                shell: '/bin/sh' // Use explicit shell
             });
             return output;
         } catch (error) {
@@ -254,20 +272,52 @@ const systemTools = {
  */
 const mathTools = {
     /**
-     * Calculate expression
+     * Calculate mathematical expression
+     * 
+     * Security Note: This uses a restricted evaluator that only allows
+     * basic arithmetic operations (+, -, *, /, parentheses, and numbers).
+     * All other characters are stripped before evaluation.
      */
     calculate: async (params) => {
         const { expression } = params;
+        
+        // Validate expression length to prevent DoS
+        if (expression.length > 1000) {
+            throw new Error('Expression too long (max 1000 characters)');
+        }
+        
         // Safe eval alternative - only allows basic math
         const safeEval = (expr) => {
-            // Remove any non-math characters
+            // Remove any non-math characters (only allow numbers, operators, parentheses, decimal point, and spaces)
             const cleaned = expr.replace(/[^0-9+\-*/().\s]/g, '');
+            
+            // Additional validation: ensure cleaned string is not empty
+            if (!cleaned || cleaned.trim().length === 0) {
+                throw new Error('Invalid mathematical expression: no valid math operators or numbers found');
+            }
+            
+            // Check for balanced parentheses
+            let balance = 0;
+            for (const char of cleaned) {
+                if (char === '(') balance++;
+                if (char === ')') balance--;
+                if (balance < 0) {
+                    throw new Error('Invalid mathematical expression: unbalanced parentheses');
+                }
+            }
+            if (balance !== 0) {
+                throw new Error('Invalid mathematical expression: unbalanced parentheses');
+            }
+            
             try {
+                // Use Function constructor in strict mode - safer than eval
+                // Only mathematical operations are possible due to character filtering
                 return Function(`"use strict"; return (${cleaned})`)();
             } catch (error) {
-                throw new Error('Invalid mathematical expression');
+                throw new Error('Invalid mathematical expression: ' + error.message);
             }
         };
+        
         return safeEval(expression);
     },
 

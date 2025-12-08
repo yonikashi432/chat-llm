@@ -6,7 +6,7 @@ const readline = require('readline');
 
 // Agent system modules
 const { executeTool, getAvailableTools, getToolsByCategory } = require('./agent-tools');
-const { loadConfig, validateConfig, createDefaultConfig, getTaskTemplate, createTaskFromTemplate } = require('./agent-config');
+const { loadConfig, validateConfig, createDefaultConfig, getTaskTemplate, createTaskFromTemplate, getAvailableTemplates } = require('./agent-config');
 const { executeTask, executeWorkflow, executeAgentWithLLM } = require('./agent-executor');
 
 const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL || 'https://api.openai.com/v1';
@@ -504,7 +504,6 @@ const handleAgentCommand = async (command, agentConfig) => {
             return { answer: 'No agent configuration loaded' };
         }
     } else if (command === 'templates') {
-        const { getAvailableTemplates } = require('./agent-config');
         const templates = getAvailableTemplates();
         return { answer: `Available templates: ${templates.join(', ')}` };
     } else {
@@ -542,7 +541,7 @@ const formatAgentResult = (result) => {
  * @property {Object.<string, function>} delegates - Impure functions to access the outside world.
  */
 
-const interact = async () => {
+const interact = async (agentConfig = null) => {
     const history = [];
 
     let loop = true;
@@ -558,12 +557,17 @@ const interact = async () => {
             const delegates = { stream };
             const context = { inquiry, history, delegates };
             const start = Date.now();
-            await reply(context);
+            
+            // Use agentReply if agent mode is enabled, otherwise use regular reply
+            const result = AGENT_MODE 
+                ? await agentReply(context, agentConfig) 
+                : await reply(context);
+            
             const duration = Date.now() - start;
             display = flush(display);
-            const answer = display.written;
+            const answer = result.answer || display.written;
             history.push({ inquiry, answer, duration });
-            console.log();
+            console.log(answer);
             console.log();
             loop && qa();
         })
@@ -685,7 +689,7 @@ const canary = async () => {
         if (!Number.isNaN(port) && port > 0 && port < 65536) {
             await serve(port);
         } else {
-            await interact();
+            await interact(agentConfig);
         }
     }
 })();
