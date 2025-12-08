@@ -6,6 +6,11 @@ const readline = require('readline');
 const { analyzeSentiment } = require('./tools/sentiment_analyzer');
 const { RequestLogger } = require('./tools/request-logger');
 
+// Agent system modules
+const { executeTool, getAvailableTools, getToolsByCategory } = require('./agent-tools');
+const { loadConfig, validateConfig, createDefaultConfig, getTaskTemplate, createTaskFromTemplate, getAvailableTemplates } = require('./agent-config');
+const { executeTask, executeWorkflow, executeAgentWithLLM } = require('./agent-executor');
+
 const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL || 'https://api.openai.com/v1';
 const LLM_API_KEY = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY;
 const LLM_CHAT_MODEL = process.env.LLM_CHAT_MODEL;
@@ -24,6 +29,11 @@ if (process.env.LLM_MODEL_CONFIGS) {
 
 const LLM_DEBUG = process.env.LLM_DEBUG;
 const LLM_DEBUG_FAIL_EXIT = process.env.LLM_DEBUG_FAIL_EXIT;
+
+// Agent mode configuration
+const AGENT_MODE = process.env.AGENT_MODE === 'true' || process.env.AGENT_MODE === '1';
+const AGENT_CONFIG = process.env.AGENT_CONFIG;
+const AGENT_VERBOSE = process.env.AGENT_VERBOSE === 'true' || process.env.AGENT_VERBOSE === '1';
 
 const NORMAL = '\x1b[0m';
 const BOLD = '\x1b[1m';
@@ -566,6 +576,93 @@ const push = (display, input, threshold = THINK_START.length) => {
 const flush = (display) => push(display, '', 0);
 
 /**
+ * Agent-enhanced reply with tool execution capabilities
+ */
+const agentReply = async (context, agentConfig = null) => {
+    const { inquiry, history } = context;
+    
+    // Check if inquiry is a special agent command
+    if (inquiry.startsWith('/agent ')) {
+        const command = inquiry.substring(7).trim();
+        return await handleAgentCommand(command, agentConfig);
+    }
+    
+    // If agent mode and config available, use agent executor
+    if (AGENT_MODE && agentConfig) {
+        try {
+            const config = { verbose: AGENT_VERBOSE };
+            const result = await executeAgentWithLLM(agentConfig, inquiry, chat, config);
+            
+            if (result.success) {
+                const answer = formatAgentResult(result);
+                return { answer, ...context };
+            } else {
+                // Fall back to regular reply on agent failure
+                console.log(`${YELLOW}Agent execution failed, falling back to regular mode${NORMAL}`);
+            }
+        } catch (error) {
+            console.error(`${RED}Agent error: ${error.message}${NORMAL}`);
+        }
+    }
+    
+    // Fall back to regular reply
+    return await reply(context);
+};
+
+/**
+ * Handle special agent commands
+ */
+const handleAgentCommand = async (command, agentConfig) => {
+    if (command === 'help') {
+        const tools = getToolsByCategory();
+        let helpText = 'Available agent commands:\n';
+        helpText += '/agent help - Show this help\n';
+        helpText += '/agent tools - List all available tools\n';
+        helpText += '/agent config - Show current agent configuration\n';
+        helpText += '/agent templates - List available task templates\n\n';
+        helpText += 'Available tool categories:\n';
+        for (const [category, toolList] of Object.entries(tools)) {
+            helpText += `  ${category}: ${toolList.join(', ')}\n`;
+        }
+        return { answer: helpText };
+    } else if (command === 'tools') {
+        const tools = getAvailableTools();
+        return { answer: `Available tools: ${tools.join(', ')}` };
+    } else if (command === 'config') {
+        if (agentConfig) {
+            return { answer: `Current agent: ${agentConfig.name}\n${agentConfig.description || ''}` };
+        } else {
+            return { answer: 'No agent configuration loaded' };
+        }
+    } else if (command === 'templates') {
+        const templates = getAvailableTemplates();
+        return { answer: `Available templates: ${templates.join(', ')}` };
+    } else {
+        return { answer: 'Unknown agent command. Try /agent help' };
+    }
+};
+
+/**
+ * Format agent execution result for display
+ */
+const formatAgentResult = (result) => {
+    if (result.context && Object.keys(result.context).length > 0) {
+        // Find the most relevant result to display
+        const lastResult = result.taskResults?.[result.taskResults.length - 1];
+        if (lastResult && lastResult.results) {
+            const finalStep = lastResult.results[lastResult.results.length - 1];
+            if (finalStep && finalStep.result !== undefined) {
+                if (typeof finalStep.result === 'object') {
+                    return JSON.stringify(finalStep.result, null, 2);
+                }
+                return String(finalStep.result);
+            }
+        }
+    }
+    return 'Task completed successfully';
+};
+
+/**
  * Represents the contextual information for each pipeline stage.
  *
  * @typedef {Object} Context
@@ -575,7 +672,7 @@ const flush = (display) => push(display, '', 0);
  * @property {Object.<string, function>} delegates - Impure functions to access the outside world.
  */
 
-const interact = async () => {
+const interact = async (agentConfig = null) => {
     const history = [];
 
     let loop = true;
@@ -591,12 +688,21 @@ const interact = async () => {
             const delegates = { stream };
             const context = { inquiry, history, delegates };
             const start = Date.now();
-            await reply(context);
+            
+            // Use agentReply if agent mode is enabled, otherwise use regular reply
+            const result = AGENT_MODE 
+                ? await agentReply(context, agentConfig) 
+                : await reply(context);
+            
             const duration = Date.now() - start;
             display = flush(display);
-            const answer = display.written;
+            const answer = result.answer || display.written;
             history.push({ inquiry, answer, duration });
-            console.log();
+            
+            // Only print if answer wasn't already streamed (agent mode direct responses)
+            if (AGENT_MODE && result.answer) {
+                console.log(answer);
+            }
             console.log();
             loop && qa();
         })
@@ -691,6 +797,31 @@ const canary = async () => {
 };
 
 (async () => {
+    // Load agent configuration if specified
+    let agentConfig = null;
+    if (AGENT_MODE) {
+        if (AGENT_CONFIG && fs.existsSync(AGENT_CONFIG)) {
+            try {
+                agentConfig = loadConfig(AGENT_CONFIG);
+                validateConfig(agentConfig);
+                console.log(`${GREEN}${CHECK}${NORMAL} Loaded agent configuration: ${CYAN}${agentConfig.name}${NORMAL}`);
+                if (agentConfig.description) {
+                    console.log(`  ${agentConfig.description}`);
+                }
+            } catch (error) {
+                console.error(`${RED}${CROSS}${NORMAL} Failed to load agent config: ${error.message}`);
+                process.exit(-1);
+            }
+        } else {
+            console.log(`${YELLOW}Agent mode enabled without configuration file${NORMAL}`);
+            console.log(`Use AGENT_CONFIG=/path/to/config.json to load a configuration`);
+            agentConfig = createDefaultConfig();
+        }
+        console.log();
+    }
+
+    await canary();
+
     const args = process.argv.slice(2);
     
     if (args.length === 0 || args[0] === '--help' || args[0] === '-h' || args[0] === 'help') {
@@ -732,6 +863,7 @@ const canary = async () => {
         } else if (format === 'csv') {
             console.log(logger.exportCSV());
         } else {
+            await interact(agentConfig);
             console.error('Unsupported format. Use: json or csv');
             process.exit(-1);
         }

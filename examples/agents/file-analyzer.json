@@ -1,0 +1,50 @@
+{
+  "name": "File Analysis Agent",
+  "description": "An agent that analyzes text files and provides statistics",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "name": "Analyze File",
+      "description": "Read a file and analyze its contents",
+      "steps": [
+        {
+          "tool": "readFile",
+          "params": {
+            "path": "{{filePath}}"
+          }
+        },
+        {
+          "tool": "wordCount",
+          "params": {
+            "text": "{{readFile}}"
+          }
+        }
+      ]
+    }
+  ],
+  "workflow": [
+    {
+      "name": "File Statistics",
+      "description": "Get comprehensive file statistics",
+      "steps": [
+        {
+          "tool": "readFile",
+          "params": {
+            "path": "README.md"
+          }
+        },
+        {
+          "tool": "wordCount",
+          "params": {
+            "text": "{{readFile}}"
+          }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "maxRetries": 3,
+    "timeout": 30000,
+    "verbose": true
+  }
+}

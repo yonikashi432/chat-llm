@@ -1,0 +1,54 @@
+{
+  "name": "Data Processing Agent",
+  "description": "Process CSV data files with filtering and aggregation",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "name": "Process CSV",
+      "description": "Load, parse, and analyze CSV data",
+      "steps": [
+        {
+          "tool": "readFile",
+          "params": {
+            "path": "{{csvPath}}"
+          }
+        },
+        {
+          "tool": "parseCSV",
+          "params": {
+            "data": "{{readFile}}",
+            "delimiter": ","
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filter and Aggregate",
+      "description": "Filter data and compute aggregates",
+      "steps": [
+        {
+          "tool": "filterData",
+          "params": {
+            "data": "{{parsedData}}",
+            "key": "{{filterKey}}",
+            "value": "{{filterValue}}"
+          }
+        },
+        {
+          "tool": "aggregateData",
+          "params": {
+            "data": "{{filterData}}",
+            "groupBy": "{{groupKey}}",
+            "aggregateKey": "{{aggKey}}",
+            "operation": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "maxRetries": 2,
+    "timeout": 60000,
+    "verbose": false
+  }
+}

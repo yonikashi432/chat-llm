@@ -4,6 +4,8 @@
 
 Chat LLM is accessible via the terminal or through its minimalist web interface.
 
+**🎯 Agent System v2.0** - Transform Chat LLM into a versatile AI agent with 31+ tools for file operations, data processing, HTTP requests, validation, and custom task automation. [What's New in v2.0](AGENT_GUIDE_V2.md)
+
 <img src="chat-llm.png" alt="Chat LLM" width="50%" height="50%"/>
 
 To run Chat LLM, ensure that [Node.js](https://nodejs.org) (v18 or higher) or [Bun](https://bun.sh) is installed.
@@ -29,6 +31,41 @@ HTTP_PORT=5000 ./chat-llm.js
 ```
 
 Then, open a web browser and go to `localhost:5000`.
+
+## Agent Mode v2.0 (Multi-Purpose AI)
+
+Enable the powerful agent system for task automation and custom data processing:
+
+```bash
+export AGENT_MODE=true
+export AGENT_CONFIG=examples/agents/swiss-army-knife.json
+export AGENT_LOG_LEVEL=DEBUG  # Optional: Enable debug logging
+./chat-llm.js
+```
+
+### Core Features (v1.0)
+- **File Operations**: Read, write, analyze files
+- **Data Processing**: Parse CSV/JSON, filter, aggregate data
+- **Text Analysis**: Search patterns, word counts, text manipulation
+- **Math & Calculations**: Evaluate expressions, generate numbers
+- **System Commands**: Execute shell commands (with security)
+- **Workflow Automation**: Chain multiple tasks together
+
+### New in v2.0 ✨
+- **HTTP Requests**: Make API calls, fetch JSON data
+- **Validation Tools**: JSON schema, email, URL validation
+- **Advanced Data**: Transform, merge, deduplicate datasets
+- **Enhanced Logging**: Configurable log levels with metrics
+- **Performance Tracking**: Execution time monitoring
+- **Improved Security**: Path validation, enhanced sanitization
+
+📚 **Documentation**:
+- [Quick Start Guide](QUICKSTART.md) - Get started in 5 minutes
+- [Agent Guide v1.0](AGENT_GUIDE.md) - Core features
+- [Agent Guide v2.0](AGENT_GUIDE_V2.md) - New features & improvements
+- [Roadmap](ROADMAP.md) - Future development plans
+- [Changelog](CHANGELOG.md) - Version history
+- Run the demo: `node demo-agent.js`
 
 ## Multi-language Support
 
