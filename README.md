@@ -112,6 +112,31 @@ Chat LLM automatically caches responses for 24 hours to avoid repeated calls to 
 
 When caching is disabled via the config command, Chat LLM immediately falls back to live responses without touching the cache. Re-enabling restores the 24-hour TTL without restarting the app.
 
+## Agent, Context, and Memory Orchestration
+
+Activating an agent (`./chat-llm.js agent-activate coder`) now feeds that persona’s system prompt straight into every chat request, so the CLI/web UI instantly adopts the tone and capabilities of the selected specialist. The active context (`context-create`, `context-activate`) is summarized and injected as another system message, giving the LLM a compact view of your tagged data and uploaded documents before it answers.
+
+```bash
+./chat-llm.js agent-list
+./chat-llm.js agent-activate researcher
+./chat-llm.js context-create customer-success
+./chat-llm.js context-activate customer-success
+./chat-llm.js memory-list
+./chat-llm.js memory-stats
+```
+
+Terminal and web sessions persist into the new Memory Manager (`./memory/`), so `memory-list` can replay full transcripts even across restarts. Each cache hit is streamed via the existing delegate, logged with metadata (agent, context, model), and recorded in memory so you can audit automated workflows.
+
+## Prompt Templates
+
+The Prompt Manager ships with battle-tested templates for analysis, coding, research, and more. You can now render them directly from the CLI with inline variables:
+
+```bash
+./chat-llm.js prompt-run analysis data="Q4 sales dipped 14%" focus="root-cause, mitigation"
+```
+
+Combine this with `prompt-list` and `prompt-render` to inspect or extend the templates before handing the generated instructions to the chat runtime.
+
 ## Multi-language Support
 
 Chat LLM is capable of conversing in multiple languages beyond English. It consistently responds in the same language as the question posed. Additionally, it supports seamless language switching between queries, as illustrated in the following example:
@@ -377,5 +402,99 @@ Chat LLM v2 is built with the following components:
 - **Logger**: Request tracking and analytics
 - **Monitor**: Performance metrics collection
 - **Tools**: Sentiment analysis and utilities
+- **Agents**: Multi-purpose agent orchestration
+- **Context**: Custom data and knowledge management
+- **Prompts**: Advanced template system
+- **Memory**: Conversation history and persistence
+- **Tasks**: Workflow and batch processing
 
 All components are optional and can be disabled via configuration for minimal resource usage.
+
+## Documentation
+
+### Getting Started
+- **[README.md](README.md)** - Overview and quick start guide (this file)
+- **[QUICK_START.md](QUICK_START.md)** - Quick reference for v2 features
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development guide and architecture details
+
+### API & Usage
+- **[API_REFERENCE.md](API_REFERENCE.md)** - Complete API documentation for all modules
+- **[EXAMPLES.md](EXAMPLES.md)** - Practical examples and real-world use cases
+
+### Planning & Roadmap
+- **[ROADMAP.md](ROADMAP.md)** - Current development roadmap and enhancements
+- **[FUTURE_FEATURES.md](FUTURE_FEATURES.md)** - Future feature proposals and ideas
+- **[RELEASE_NOTES_V2.md](RELEASE_NOTES_V2.md)** - Version 2 release notes
+
+### Testing
+- **tests/** - Evaluation tests in multiple languages
+
+## Code Quality & Best Practices
+
+Chat LLM v2 includes comprehensive improvements:
+
+### Input Validation
+All public APIs validate inputs with descriptive error messages:
+```javascript
+// Example: Type checking and validation
+if (typeof text !== 'string' || text.trim().length === 0) {
+  throw new TypeError('Text must be a non-empty string');
+}
+```
+
+### Memory Management
+Automatic limits prevent memory overflow:
+- Request Logger: 10,000 in-memory logs
+- Response Cache: 1,000 memory entries
+- Performance Monitor: Configurable limit (default: 10,000)
+
+### Error Handling
+All modules include comprehensive error handling:
+```javascript
+try {
+  const result = await operation();
+  logger.logRequest('operation', input, result, duration);
+} catch (error) {
+  logger.logRequest('operation', input, error.message, duration, { error: true });
+  throw error;
+}
+```
+
+### Performance Monitoring
+Built-in metrics tracking:
+- P95/P99 latency percentiles
+- Cache hit rates
+- Memory usage monitoring
+- Operation statistics
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Read the [DEVELOPMENT.md](DEVELOPMENT.md) guide
+2. Review [FUTURE_FEATURES.md](FUTURE_FEATURES.md) for feature ideas
+3. Check existing issues and PRs
+4. Follow the code quality standards
+5. Add tests for new features
+6. Update documentation
+
+## Community & Support
+
+- **Issues**: Report bugs or request features on GitHub
+- **Discussions**: Share ideas and ask questions
+- **Examples**: Check [EXAMPLES.md](EXAMPLES.md) for common patterns
+- **API Docs**: See [API_REFERENCE.md](API_REFERENCE.md) for detailed API info
+
+## License
+
+See [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+Chat LLM v2 is built with zero external dependencies, leveraging only Node.js built-in modules for maximum portability and minimal overhead.
+
+---
+
+**Version**: 2.0.0  
+**Last Updated**: December 8, 2025  
+**Maintainer**: yonikashi432
