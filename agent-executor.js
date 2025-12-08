@@ -213,12 +213,15 @@ const resolveParams = (params, context) => {
                 return match;
             });
             
-            // Try to parse back to object/array if it looks like JSON
-            if (value.startsWith('[') || value.startsWith('{')) {
+            // Try to parse back to object/array if it's a JSON string
+            // More robust JSON detection: check if starts with { or [ and ends with } or ]
+            const trimmedValue = value.trim();
+            if ((trimmedValue.startsWith('[') && trimmedValue.endsWith(']')) ||
+                (trimmedValue.startsWith('{') && trimmedValue.endsWith('}'))) {
                 try {
-                    value = JSON.parse(value);
+                    value = JSON.parse(trimmedValue);
                 } catch (e) {
-                    // Keep as string if parse fails
+                    // Keep as string if parse fails - this is expected for non-JSON strings
                 }
             }
         }

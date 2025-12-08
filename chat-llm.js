@@ -567,7 +567,11 @@ const interact = async (agentConfig = null) => {
             display = flush(display);
             const answer = result.answer || display.written;
             history.push({ inquiry, answer, duration });
-            console.log(answer);
+            
+            // Only print if answer wasn't already streamed (agent mode direct responses)
+            if (AGENT_MODE && result.answer) {
+                console.log(answer);
+            }
             console.log();
             loop && qa();
         })

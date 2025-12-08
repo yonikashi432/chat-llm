@@ -154,7 +154,11 @@ const textTools = {
      */
     wordCount: async (params) => {
         const { text } = params;
-        const words = text.trim().split(/\s+/);
+        const trimmed = text.trim();
+        if (trimmed.length === 0) {
+            return 0;
+        }
+        const words = trimmed.split(/\s+/);
         return words.length;
     },
 
@@ -163,8 +167,20 @@ const textTools = {
      */
     grep: async (params) => {
         const { text, pattern, caseInsensitive = false } = params;
+        
+        // Validate pattern length to prevent ReDoS
+        if (pattern.length > 500) {
+            throw new Error('Pattern too long (max 500 characters)');
+        }
+        
         const flags = caseInsensitive ? 'gi' : 'g';
-        const regex = new RegExp(pattern, flags);
+        let regex;
+        try {
+            regex = new RegExp(pattern, flags);
+        } catch (error) {
+            throw new Error(`Invalid regex pattern: ${error.message}`);
+        }
+        
         const lines = text.split('\n');
         return lines.filter(line => regex.test(line));
     },
@@ -174,8 +190,20 @@ const textTools = {
      */
     replace: async (params) => {
         const { text, pattern, replacement, global = true } = params;
+        
+        // Validate pattern length to prevent ReDoS
+        if (pattern.length > 500) {
+            throw new Error('Pattern too long (max 500 characters)');
+        }
+        
         const flags = global ? 'g' : '';
-        const regex = new RegExp(pattern, flags);
+        let regex;
+        try {
+            regex = new RegExp(pattern, flags);
+        } catch (error) {
+            throw new Error(`Invalid regex pattern: ${error.message}`);
+        }
+        
         return text.replace(regex, replacement);
     },
 
