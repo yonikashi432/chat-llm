@@ -96,7 +96,7 @@ Built-in sentiment analysis, request logging, and statistics:
 ./chat-llm.js export json       # Export logs
 ```
 
-For detailed v2 features and examples, see [QUICK_START.md](QUICK_START.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+For detailed v2 features and examples, see [QUICK_START.md](docs/getting-started/QUICK_START.md) and [DEVELOPMENT.md](docs/development/DEVELOPMENT.md).
 
 ## Response Caching & Configuration
 
