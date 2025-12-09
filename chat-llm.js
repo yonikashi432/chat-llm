@@ -312,15 +312,238 @@ console.log(analyzeSentiment("text to analyze"));
 Your answer should be a sentence or two, unless the user's request requires long-form outputs.
 Never use emojis. Never use markdown. Always answer in plain text and  in the same language as the query.`;
 
-const DEMO_RESPONSES = {
-    'capital': ['Paris is the capital of France.', 'The capital of France is Paris.'],
-    'weather': ['I cannot check the current weather, but you can check a weather service online.', 'Weather information is not available in demo mode.'],
-    'time': ['I cannot provide real-time information in demo mode.', 'Time-based queries are not supported in demo mode.'],
-    'planet': ['Jupiter is the largest planet in our solar system.', 'The largest planet is Jupiter.'],
-    'smallest': ['Mercury is the smallest planet in our solar system.', 'The smallest planet is Mercury.'],
-    'hottest': ['Venus is the hottest planet in our solar system.', 'The hottest planet is Venus.'],
-    'default': ['This is a demo response since the LLM API is unavailable.', 'I am in demo mode and cannot provide real responses.', 'Demo mode is active - API responses are simulated.']
-};
+const pickDemoResponse = (responses) => responses[Math.floor(Math.random() * responses.length)];
+const DEMO_DEFAULT_RESPONSES = [
+    'This is a demo response since the LLM API is unavailable.',
+    'I am in demo mode and cannot provide real responses.',
+    'Demo mode is active - API responses are simulated.'
+];
+const DEMO_RULES = [
+    {
+        pattern: /(capital).*(france)|france.*capital|paris/i,
+        responses: ['Paris is the capital of France.', 'The capital of France is Paris.']
+    },
+    {
+        pattern: /(weather|rain|temperature)/i,
+        responses: ['I cannot check the current weather, but you can check a weather service online.', 'Weather information is not available in demo mode.']
+    },
+    {
+        pattern: /(time|hour|clock)/i,
+        responses: ['I cannot provide real-time information in demo mode.', 'Time-based queries are not supported in demo mode.']
+    },
+    {
+        pattern: /((largest|biggest).*(planet))|(planet.*(largest|biggest))/i,
+        responses: ['Jupiter is the largest planet in our solar system.', 'The gas giant Jupiter easily claims the title of largest planet.']
+    },
+    {
+        pattern: /(smallest.*planet)|(planet.*smallest)|(^and the smallest\b)/i,
+        responses: ['Mercury is the smallest planet in our solar system.', 'The smallest planet orbiting the Sun is Mercury.']
+    },
+    {
+        pattern: /(hottest.*planet)|(planet.*hottest)|(^and the hottest\b)/i,
+        responses: ['Venus is the hottest planet in our solar system.', 'Extreme surface temperatures make Venus the hottest planet.']
+    },
+    {
+        pattern: /(complex.*ring.*system|most complex ring)/i,
+        responses: ['Saturn is known for the most complex ring system in the solar system.', 'That would be Saturn—it has the most intricate rings.']
+    },
+    {
+        pattern: /(scientists?).*(calculus)|calculus.*scientists?/i,
+        responses: ['Isaac Newton and Gottfried Wilhelm Leibniz developed modern calculus.', 'Modern calculus is credited to both Newton and Leibniz.']
+    },
+    {
+        pattern: /(information theory)/i,
+        responses: ['Claude Shannon described the mathematics of information theory.', 'Information theory was formalized by Claude Shannon in 1948.']
+    },
+    {
+        pattern: /(special).*(relativity)/i,
+        responses: ['Albert Einstein developed the special theory of relativity.', 'The special theory of relativity came from Albert Einstein.']
+    },
+    {
+        pattern: /(canon of medicine|persian scientist.*canon)/i,
+        responses: ['The Canon of Medicine was authored by Avicenna, also known as Ibn Sina.', 'Avicenna (Ibn Sina) wrote the Canon of Medicine.']
+    },
+    {
+        pattern: /(atomic number).*(magnesium)|magnesium.*(atomic number)/i,
+        responses: ['Magnesium has an atomic number of 12.', 'The atomic number of magnesium is 12 (twelve).']
+    },
+    {
+        pattern: /(atomic number).*(carbon)|carbon.*(atomic number)/i,
+        responses: ['Carbon has an atomic number of 6.', 'The atomic number of carbon is 6 (six).']
+    },
+    {
+        pattern: /(shapes?).*(structures?)|(branch).*(shapes|structures)/i,
+        responses: ['Geometry and its cousin topology study shapes and structures.', 'That falls under geometry, with topology covering deeper structural questions.']
+    },
+    {
+        pattern: /(gas giants?).*(compose|made)/i,
+        responses: ['Gas giants are primarily composed of hydrogen and helium.', 'They are mostly made of hydrogen with a lot of helium mixed in.']
+    },
+    {
+        pattern: /ikea|nordic.*furniture/i,
+        responses: ['IKEA is a Swedish company, so Sweden is the Nordic country you want.', 'Sweden is the Nordic country known for IKEA.']
+    },
+    {
+        pattern: /(continent).*(ice)|consists mostly of ice/i,
+        responses: ['Antarctica is the continent that consists mostly of ice.', 'You are thinking of Antarctica—it is mainly ice.']
+    },
+    {
+        pattern: /(longest).*(latin america).*river/i,
+        responses: ['The Amazon River is the longest river in Latin America.', 'Latin America’s longest river is the Amazon.']
+    },
+    {
+        pattern: /kangaroo|kangoroo/i,
+        responses: ['Kangaroos are native to Australia.', 'You find kangaroos in Australia.']
+    },
+    {
+        pattern: /(most populated).*(state)|state.*most populated/i,
+        responses: ['California is currently the most populated US state.', 'The US state with the largest population is California.']
+    },
+    {
+        pattern: /(capital).*(indonesia)|indonesia.*capital/i,
+        responses: ['Jakarta is the capital of Indonesia, with Nusantara being gradually introduced.', 'Indonesia’s capital is Jakarta, transitioning toward Nusantara.']
+    },
+    {
+        pattern: /(capital).*(east java)/i,
+        responses: ['Surabaya is the capital of East Java.', 'The capital city of East Java is Surabaya.']
+    },
+    {
+        pattern: /(island of gods|top beach destination).*indonesia/i,
+        responses: ['Bali, the “island of the gods,” is Indonesia’s top beach destination.', 'Indonesia’s famous island of the gods is Bali.']
+    },
+    {
+        pattern: /(sport).*(india)/i,
+        responses: ['Cricket is the most popular sport in India.', 'India’s favorite sport is cricket.']
+    },
+    {
+        pattern: /(coldest).*(continent)/i,
+        responses: ['Antarctica is the coldest continent.', 'The coldest continent on Earth is Antarctica.']
+    },
+    {
+        pattern: /mandarin/i,
+        responses: ['Mandarin is primarily spoken in China.', 'China is the country most associated with Mandarin.']
+    },
+    {
+        pattern: /(desert).*(mongolia)/i,
+        responses: ['The Gobi Desert is near Mongolia.', 'You are thinking of the Gobi Desert near Mongolia.']
+    },
+    {
+        pattern: /(tallest|no 1).*building.*middle east/i,
+        responses: ['The Burj Khalifa is the tallest building in the Middle East.', 'Dubai’s Burj Khalifa currently tops the Middle East.']
+    },
+    {
+        pattern: /pyramids?/i,
+        responses: ['Egypt is famous for its pyramids.', 'The pyramids you are thinking of are in Egypt.']
+    },
+    {
+        pattern: /masnavi/i,
+        responses: ['The Masnavi was written by Jalal ad-Din Rumi.', 'Rumi (Jalal ad-Din) composed the Masnavi.']
+    },
+    {
+        pattern: /(first).*(president).*(usa|united states)/i,
+        responses: ['George Washington was the first President of the United States.', 'The first US president was George Washington.']
+    },
+    {
+        pattern: /santa maria/i,
+        responses: ['Christopher Columbus commanded the Santa Maria on his voyage.', 'The Santa Maria was captained by Christopher Columbus.']
+    },
+    {
+        pattern: /lisp/i,
+        responses: ['John McCarthy invented LISP in 1958.', 'LISP was created by John McCarthy.']
+    },
+    {
+        pattern: /mona lisa/i,
+        responses: ['Leonardo da Vinci painted the Mona Lisa.', 'The Mona Lisa was painted by Leonardo da Vinci.']
+    },
+    {
+        pattern: /(revolution).*(south africa)/i,
+        responses: ['Nelson Mandela led the freedom movement in South Africa.', 'South Africa’s revolution was led by Nelson Mandela.']
+    },
+    {
+        pattern: /(britain|british).*(pm|prime minister).*(ww|world war)/i,
+        responses: ['Winston Churchill rallied Britain during World War II.', 'The British PM during WWII was Winston Churchill.']
+    },
+    {
+        pattern: /biryani/i,
+        responses: ['Biryani has its origins in India.', 'The dish Biryani comes from India.']
+    },
+    {
+        pattern: /(green).*(paste).*(sushi)|wasabi/i,
+        responses: ['The green paste with sushi is wasabi.', 'You are referring to wasabi, the spicy green paste served with sushi.']
+    },
+    {
+        pattern: /nasi lemak/i,
+        responses: ['Nasi Lemak originated in Malaysia.', 'Malaysia is the birthplace of Nasi Lemak.']
+    },
+    {
+        pattern: /patt(y|ies).*burger/i,
+        responses: ['Common burger patties include beef, chicken, turkey, veggie, and fish options.', 'Burgers are often filled with beef, chicken, or veggie patties.']
+    },
+    {
+        pattern: /kfc/i,
+        responses: ['Colonel Harland Sanders created KFC.', 'KFC was founded by Colonel Sanders.']
+    },
+    {
+        pattern: /ramen/i,
+        responses: ['Ramen is typically eaten in Japan.', 'Japan is the home of ramen.']
+    },
+    {
+        pattern: /nasi goreng/i,
+        responses: ['Nasi Goreng is built around fried rice with egg and aromatics.', 'The main ingredient of Nasi Goreng is rice, usually stir-fried with egg.']
+    },
+    {
+        pattern: /captain kirk/i,
+        responses: ['Captain Kirk’s first name is James, often shortened to Jim.', 'James “Jim” Kirk commands the Enterprise.']
+    },
+    {
+        pattern: /(han|hans).*spacecraft|millennium falcon/i,
+        responses: ['Han Solo flies the Millennium Falcon.', 'That spacecraft is the Millennium Falcon flown by Han Solo.']
+    },
+    {
+        pattern: /(007|spy).*007/i,
+        responses: ['Agent 007 is James Bond.', 'The fictional spy 007 is James Bond.']
+    },
+    {
+        pattern: /dark knight/i,
+        responses: ['Christopher Nolan directed The Dark Knight.', 'The Dark Knight was directed by Christopher Nolan.']
+    },
+    {
+        pattern: /spider(man)?/i,
+        responses: ['Spider-Man’s real name is Peter Parker.', 'Peter Parker is the person behind Spider-Man.']
+    },
+    {
+        pattern: /wolverine/i,
+        responses: ['Wolverine’s skeleton is laced with adamantium.', 'The metal infused into Wolverine is adamantium.']
+    },
+    {
+        pattern: /aladdin/i,
+        responses: ['Princess Jasmine is the royal in Disney’s Aladdin.', 'Aladdin’s princess is Jasmine.']
+    },
+    {
+        pattern: /(force).*(center of the earth|pulls objects)/i,
+        responses: ['Gravity is the force that pulls objects toward Earth’s center.', 'That force is called gravity, or gravitational force.']
+    },
+    {
+        pattern: /(plants?).*(make their own food)/i,
+        responses: ['Plants make their own food through photosynthesis.', 'Photosynthesis lets plants produce their own food.']
+    },
+    {
+        pattern: /(interior angles?).*(triangle)|sum.*triangle/i,
+        responses: ['The interior angles of a triangle sum to 180 degrees.', 'Add up the angles of any triangle and you get 180°.']
+    },
+    {
+        pattern: /(unit).*(measuring).*(force)/i,
+        responses: ['Force is measured in newtons (N).', 'The SI unit of force is the newton.']
+    },
+    {
+        pattern: /(chemical symbol).*(magnesium)/i,
+        responses: ['The chemical symbol for magnesium is Mg.', 'Magnesium uses the chemical symbol Mg.']
+    },
+    {
+        pattern: /(smallest).*(unit).*(matter)/i,
+        responses: ['The smallest unit of matter is the atom, though physics studies smaller particles too.', 'Atoms are the basic units of matter, with particles like quarks below them.']
+    }
+];
 
 /**
  * Generates a simulated demo response for testing without API access.
@@ -330,24 +553,19 @@ const DEMO_RESPONSES = {
  * @returns {Promise<string>} A simulated response based on inquiry patterns
  */
 const demoReply = async (inquiry) => {
-    // Simple pattern matching for demo responses
-    const lowerInquiry = inquiry.toLowerCase();
-    
-    if (lowerInquiry.includes('capital') || lowerInquiry.includes('france') || lowerInquiry.includes('paris')) {
-        return DEMO_RESPONSES.capital[Math.floor(Math.random() * DEMO_RESPONSES.capital.length)];
-    } else if (lowerInquiry.includes('weather') || lowerInquiry.includes('rain') || lowerInquiry.includes('temperature')) {
-        return DEMO_RESPONSES.weather[Math.floor(Math.random() * DEMO_RESPONSES.weather.length)];
-    } else if (lowerInquiry.includes('time') || lowerInquiry.includes('hour') || lowerInquiry.includes('clock')) {
-        return DEMO_RESPONSES.time[Math.floor(Math.random() * DEMO_RESPONSES.time.length)];
-    } else if (lowerInquiry.includes('largest') && lowerInquiry.includes('planet')) {
-        return DEMO_RESPONSES.planet[Math.floor(Math.random() * DEMO_RESPONSES.planet.length)];
-    } else if (lowerInquiry.includes('smallest') && lowerInquiry.includes('planet')) {
-        return DEMO_RESPONSES.smallest[Math.floor(Math.random() * DEMO_RESPONSES.smallest.length)];
-    } else if (lowerInquiry.includes('hottest') && lowerInquiry.includes('planet')) {
-        return DEMO_RESPONSES.hottest[Math.floor(Math.random() * DEMO_RESPONSES.hottest.length)];
+    const normalizedInquiry = inquiry.trim();
+    for (const rule of DEMO_RULES) {
+        if (rule.pattern.test(normalizedInquiry)) {
+            if (LLM_DEBUG) {
+                console.log(`${GRAY}[demo-match]${NORMAL} ${normalizedInquiry} ⇢ ${rule.pattern}`);
+            }
+            return pickDemoResponse(rule.responses);
+        }
     }
-    
-    return DEMO_RESPONSES.default[Math.floor(Math.random() * DEMO_RESPONSES.default.length)];
+    if (LLM_DEBUG) {
+        console.log(`${GRAY}[demo-default]${NORMAL} ${normalizedInquiry}`);
+    }
+    return pickDemoResponse(DEMO_DEFAULT_RESPONSES);
 };
 
 /**
