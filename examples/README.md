@@ -197,14 +197,14 @@ chmod +x examples/*.js
 
 ## Further Reading
 
-- [API Documentation](../API.md)
-- [Features Overview](../FEATURES.md)
-- [Quick Start Guide](../QUICK_START.md)
+- [API Documentation](../docs/reference/API.md)
+- [Features Overview](../docs/features/FEATURES.md)
+- [Quick Start Guide](../docs/getting-started/QUICK_START.md)
 - [README](../README.md)
 
 ## Contributing
 
-Have an example idea? See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+Have an example idea? See [CONTRIBUTING.md](../docs/development/CONTRIBUTING.md) for guidelines.
 
 ---
 
