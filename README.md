@@ -96,7 +96,7 @@ Built-in sentiment analysis, request logging, and statistics:
 ./chat-llm.js export json       # Export logs
 ```
 
-For detailed v2 features and examples, see [QUICK_START.md](QUICK_START.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+For detailed v2 features and examples, see [QUICK_START.md](docs/getting-started/QUICK_START.md) and [DEVELOPMENT.md](docs/development/DEVELOPMENT.md).
 
 ## Response Caching & Configuration
 
@@ -414,17 +414,21 @@ All components are optional and can be disabled via configuration for minimal re
 
 ### Getting Started
 - **[README.md](README.md)** - Overview and quick start guide (this file)
-- **[QUICK_START.md](QUICK_START.md)** - Quick reference for v2 features
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development guide and architecture details
+- **[QUICK_START.md](docs/getting-started/QUICK_START.md)** - Quick reference for v2 features
+- **[DEVELOPMENT.md](docs/development/DEVELOPMENT.md)** - Development guide and architecture details
 
 ### API & Usage
-- **[API_REFERENCE.md](API_REFERENCE.md)** - Complete API documentation for all modules
-- **[EXAMPLES.md](EXAMPLES.md)** - Practical examples and real-world use cases
+- **[API_REFERENCE.md](docs/reference/API_REFERENCE.md)** - Complete API documentation for all modules
+- **[EXAMPLES.md](docs/getting-started/EXAMPLES.md)** - Practical examples and real-world use cases
 
 ### Planning & Roadmap
-- **[ROADMAP.md](ROADMAP.md)** - Current development roadmap and enhancements
-- **[FUTURE_FEATURES.md](FUTURE_FEATURES.md)** - Future feature proposals and ideas
-- **[RELEASE_NOTES_V2.md](RELEASE_NOTES_V2.md)** - Version 2 release notes
+- **[ROADMAP.md](docs/features/ROADMAP.md)** - Current development roadmap and enhancements
+- **[FUTURE_FEATURES.md](docs/features/FUTURE_FEATURES.md)** - Future feature proposals and ideas
+- **[RELEASE_NOTES_V2.md](docs/release-notes/RELEASE_NOTES_V2.md)** - Version 2 release notes
+
+### Complete Documentation
+- **[Documentation Index](docs/README.md)** - Browse all documentation by topic
+- **[Master Index](docs/DOCUMENTATION_MASTER_INDEX.md)** - Complete navigation with learning paths
 
 ### Testing
 - **tests/** - Evaluation tests in multiple languages
@@ -471,8 +475,8 @@ Built-in metrics tracking:
 
 Contributions are welcome! Please:
 
-1. Read the [DEVELOPMENT.md](DEVELOPMENT.md) guide
-2. Review [FUTURE_FEATURES.md](FUTURE_FEATURES.md) for feature ideas
+1. Read the [DEVELOPMENT.md](docs/development/DEVELOPMENT.md) guide
+2. Review [FUTURE_FEATURES.md](docs/features/FUTURE_FEATURES.md) for feature ideas
 3. Check existing issues and PRs
 4. Follow the code quality standards
 5. Add tests for new features
@@ -482,8 +486,8 @@ Contributions are welcome! Please:
 
 - **Issues**: Report bugs or request features on GitHub
 - **Discussions**: Share ideas and ask questions
-- **Examples**: Check [EXAMPLES.md](EXAMPLES.md) for common patterns
-- **API Docs**: See [API_REFERENCE.md](API_REFERENCE.md) for detailed API info
+- **Examples**: Check [EXAMPLES.md](docs/getting-started/EXAMPLES.md) for common patterns
+- **API Docs**: See [API_REFERENCE.md](docs/reference/API_REFERENCE.md) for detailed API info
 
 ## License
 

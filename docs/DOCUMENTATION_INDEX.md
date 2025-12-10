@@ -7,8 +7,8 @@ Welcome to the Chat LLM v2 documentation! This is your comprehensive guide to un
 ### Quick Start
 
 - **New to Chat LLM?** → Start with [README.md](../README.md)
-- **Want to use v2 features?** → See [V2_ARCHITECTURE.md](./V2_ARCHITECTURE.md)
-- **Running your first chat?** → Check [QUICK_START.md](./QUICK_START.md)
+- **Want to use v2 features?** → See [V2_ARCHITECTURE.md](architecture/V2_ARCHITECTURE.md)
+- **Running your first chat?** → Check [QUICK_START.md](getting-started/QUICK_START.md)
 
 ## 📖 Core Documentation
 
